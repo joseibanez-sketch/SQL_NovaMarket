@@ -33,6 +33,20 @@ def cargar_y_modelar():
         }
         dim_ciudad['Region'] = dim_ciudad['Ciudad'].map(regiones).fillna('Otro')
         
+        # Construir DimFecha
+        print("🔨 Creando Dimensión de Fechas...")
+        fecha_min = df['Fecha'].min()
+        fecha_max = df['Fecha'].max()
+        dim_fecha = pd.DataFrame({'Fecha': pd.date_range(start=fecha_min, end=fecha_max)})
+        dim_fecha['FechaID'] = dim_fecha['Fecha'].dt.strftime('%Y%m%d').astype(int)
+        dim_fecha['Fecha'] = dim_fecha['Fecha'].dt.strftime('%Y-%m-%d')
+        
+        meses = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 
+                 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'}
+        dim_fecha['NombreMes'] = pd.to_datetime(dim_fecha['Fecha']).dt.month.map(meses)
+        dim_fecha['Evento_Especial'] = None
+        dim_fecha.loc[dim_fecha['Fecha'] == '2023-11-24', 'Evento_Especial'] = 'Black Friday'
+        
         # 3. CREAR TABLA DE HECHOS (FACTVENTAS)
         # Unimos todo usando IDs para que la base de datos sea eficiente
         print("🔨 Realizando el modelado final...")
@@ -55,10 +69,11 @@ def cargar_y_modelar():
         conn = sqlite3.connect(DATABASE_FILE)
         dim_producto.to_sql('DimProducto', conn, if_exists='replace', index=False)
         dim_ciudad.to_sql('DimCiudad',     conn, if_exists='replace', index=False)
+        dim_fecha.to_sql('DimFecha',       conn, if_exists='replace', index=False)
         fact_ventas.to_sql('FactVentas',   conn, if_exists='replace', index=False)
         
         print(f"✅ ¡Éxito! Base de Datos '{DATABASE_FILE}' creada.")
-        print(f"📊 Resumen: Sales: {len(fact_ventas)} | Ciudades: {len(dim_ciudad)} | Productos: {len(dim_producto)}")
+        print(f"📊 Resumen: Ventas: {len(fact_ventas)} | Ciudades: {len(dim_ciudad)} | Productos: {len(dim_producto)} | Fechas: {len(dim_fecha)}")
         conn.close()
         
     except Exception as e:
