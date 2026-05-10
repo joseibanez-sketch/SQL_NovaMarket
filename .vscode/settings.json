@@ -11,6 +11,12 @@
             "driver": "SQLite",
             "name": "Sesion_7",
             "database": "${workspaceFolder:SQL_NovaMarket}/02_Sesion_07/Novamarket_S07.db"
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Sesion_8_9",
+            "database": "${workspaceFolder:SQL_NovaMarket}/03_Sesion_08_09/Novamarket_S08S09.db"
         }
     ]
 }
