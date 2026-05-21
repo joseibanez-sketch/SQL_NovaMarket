@@ -25,24 +25,22 @@ FROM FactVentas
 GROUP BY CiudadID;
 
 -- Paso 2: El veredicto de Leticia con GROUP BY (Usando IDs)
--- ¿Qué CiudadID tiene el peor Margen_Aproximado? ¿Cuánto es esa pérdida?
-SELECT f.CiudadID,
-    c.Ciudad AS Nombre_Ciudad,
+SELECT CiudadID,
     COUNT(*) AS Transacciones,
-    ROUND(SUM(f.Precio_Venta * f.Cantidad * (1 - f.Descuento_Pct)), 2) AS Venta_Neta,
-    ROUND(SUM(f.Costo_Unitario * f.Cantidad), 2) AS Costo_Producto_Total,
-    ROUND(SUM(f.Costo_Envio), 2) AS Costo_Envio_Total,
     ROUND(
-        SUM(f.Precio_Venta * f.Cantidad * (1 - f.Descuento_Pct))
-        - SUM(f.Costo_Unitario * f.Cantidad)
-        - SUM(f.Costo_Envio),
+        SUM(Precio_Venta * Cantidad * (1 - Descuento_Pct)),
+        2
+    ) AS Venta_Neta,
+    ROUND(SUM(Costo_Envio), 2) AS Costo_Envio_Total,
+    ROUND(
+        SUM(
+            Precio_Venta * Cantidad * (1 - Descuento_Pct) - Costo_Envio
+        ),
         2
     ) AS Margen_Aproximado
-FROM FactVentas f
-    INNER JOIN DimCiudad c ON f.CiudadID = c.CiudadID
-GROUP BY f.CiudadID
-ORDER BY Margen_Aproximado ASC
-LIMIT 1;
+FROM FactVentas
+GROUP BY CiudadID
+ORDER BY Margen_Aproximado ASC;
 
 -- Paso 3: SUM vs AVG
 SELECT CiudadID,
@@ -150,14 +148,12 @@ SELECT c.Ciudad,
     ROUND(SUM(f.Precio_Venta * f.Cantidad * (1 - f.Descuento_Pct)), 2) AS Venta_Neta,
     ROUND(
         SUM(f.Precio_Venta * f.Cantidad * (1 - f.Descuento_Pct))
-        - SUM(f.Costo_Unitario * f.Cantidad)
         - SUM(f.Costo_Envio),
         2
     ) AS Utilidad,
     ROUND(
         (
             SUM(f.Precio_Venta * f.Cantidad * (1 - f.Descuento_Pct))
-            - SUM(f.Costo_Unitario * f.Cantidad)
             - SUM(f.Costo_Envio)
         ) / SUM(f.Precio_Venta * f.Cantidad * (1 - f.Descuento_Pct)) * 100,
         2
